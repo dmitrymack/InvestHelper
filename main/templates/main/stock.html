@@ -1,0 +1,29 @@
+{% extends "main/base.html" %}
+{% block content %}
+<body>
+
+<div id="qwe">ASEDR</div>
+<p>ticker: {{ ticker }}</p>
+
+</body>
+
+<script>
+$(document).ready(function () {
+    setInterval(function()
+        {
+        $.ajax({
+           type: 'GET',
+           dataType: 'json',
+           url: "{% url 'info' ticker=ticker %}",
+           success: function(response){
+                $("#qwe").text(response.raw)
+           },
+           error: function(jqXHR, exception, response){
+                $("#qwe").text(jqXHR.status)
+
+           }
+        });
+    }, 5000);
+})
+</script>
+{% endblock content %}
