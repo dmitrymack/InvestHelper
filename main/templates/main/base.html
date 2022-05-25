@@ -19,22 +19,36 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Dropdown
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
+            <div class="nav-link">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/United-states_flag_icon_round.svg/1024px-United-states_flag_icon_round.svg.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                USD($) / <span id="USD"></span> RUB
             </div>
           </li>
+          <li class="nav-item active">
+            <div class="nav-link">
+                <img src="https://cdn.countryflags.com/thumbs/europe/flag-3d-round-250.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                EUR(€) / <span id="EUR"></span> RUB
+            </div>
+          </li>
+            <li class="nav-item active">
+            <div class="nav-link">
+                <img src="https://cdn1.iconfinder.com/data/icons/world-flags-circular/1000/Flag_of_United_Kingdom_-_Circle-512.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                GBP(£) / <span id="GBP"></span> RUB
+            </div>
+          </li>
+            <li class="nav-item active">
+            <div class="nav-link">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Circle_Flag_of_the_People%27s_Republic_of_China.svg/2048px-Circle_Flag_of_the_People%27s_Republic_of_China.svg.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                CNY(Ұ) / <span id="CNY"></span> RUB
+            </div>
+          </li>
+            <li class="nav-item active">
+            <div class="nav-link">
+                <img src="https://cdn.countryflags.com/thumbs/japan/flag-3d-round-250.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                JPY(¥) / <span id="JPY"></span> RUB
+            </div>
+          </li>
+
         </ul>
             <div class="nav-item active ">
 
@@ -48,7 +62,7 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" href="#">Избранное</a>
                 <a class="dropdown-item" href="#">Комментарии</a>
-                <a class="dropdown-item" href="#" >Выход</a>
+                <a class="dropdown-item" href="#">Выход</a>
               </div>
             </div>
             {% else %}
@@ -62,9 +76,25 @@
 {% block content %}
 {% endblock content %}
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+           type: 'GET',
+           dataType: 'json',
+           url: "{% url 'courses' %}",
+           success: function(response){
+                $("#USD").text(response.USD.Value)
+                $("#EUR").text(response.EUR.Value)
+                $("#GBP").text(response.GBP.Value)
+                $("#CNY").text(response.CNY.Value)
+                $("#JPY").text(response.JPY.Value)
+           },
+           error: function(jqXHR, exception){
+                $("#USD").text(jqXHR.status)
+           }
+        });
+    })
+</script>
 
 </body>
 </html>
