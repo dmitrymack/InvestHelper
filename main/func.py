@@ -1,8 +1,10 @@
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 import json
 import csv
 import certifi
 import ssl
+from bs4 import BeautifulSoup
+import xlrd
 
 
 def get_stocks_spb():
@@ -53,7 +55,7 @@ def get_stock_info(ticker: str):
 
 
 def filter_stocks():
-    dat = get_stocks_spb() + get_stocks_moex()
+    dat = get_stocks_moex() + get_stocks_spb() + get_eurostoxx50()
     print(*dat, sep='\n')
     filtered = []
     for i in dat:
@@ -69,5 +71,70 @@ def filter_stocks():
             if a['price']['regularMarketPrice']['raw'] == 0: raise
         except:
             continue
-        filtered += [i]
+        a['price']['marketCap']['raw'] = dict(a['price']['marketCap']).get('raw', 0)
+        filtered += [a]
+        #print(f"{a['price']['symbol']} {a['price']['shortName']} {a['price']['currency']} {a['price']['regularMarketDayLow']['raw']} {a['price']['marketCap']['raw']}")
     return filtered
+
+
+def get_nasdaq100():
+    url = 'https://finasko.com/wp-content/uploads/2022/03/Nasdaq-100-Weight.xlsx'
+    req = Request(url, headers={'User-Agent': "Magic Browser"})
+    con = urlopen(req)
+    xls = xlrd.open_workbook(file_contents=con.read())
+    sheet = xls.sheet_by_index(0)
+    dat = []
+    for i in range(1, sheet.nrows):
+        dat += [sheet.cell_value(i, 2)]
+    return dat
+
+
+def get_sandp500():
+    url = 'https://finasko.com/wp-content/uploads/2022/03/Download-SP-500-Weight.xlsx'
+    req = Request(url, headers={'User-Agent': "Magic Browser"})
+    con = urlopen(req)
+    xls = xlrd.open_workbook(file_contents=con.read())
+    sheet = xls.sheet_by_index(0)
+    dat = []
+    for i in range(1, sheet.nrows):
+        dat += [sheet.cell_value(i, 2)]
+    return dat
+
+
+def get_dowjones():
+    url = 'https://finasko.com/wp-content/uploads/2022/01/Dow-Jones-Companies-By-Weightage.xlsx'
+    req = Request(url, headers={'User-Agent': "Magic Browser"})
+    con = urlopen(req)
+    xls = xlrd.open_workbook(file_contents=con.read())
+    sheet = xls.sheet_by_index(0)
+    dat = []
+    for i in range(3, 33):
+        dat += [sheet.cell_value(i, 2)]
+    return dat
+
+
+def get_imoex():
+    url = 'https://fs.moex.com/files/15237'
+    req = Request(url, headers={'User-Agent': "Magic Browser"})
+    con = urlopen(req, context=ssl.create_default_context(cafile=certifi.where()))
+    xls = xlrd.open_workbook(file_contents=con.read())
+    sheet = xls.sheet_by_index(1)
+    dat = []
+    for i in range(4, sheet.nrows):
+        if sheet.cell_value(i, 1) == '':
+            break
+        dat += [sheet.cell_value(i, 1)]
+    return dat
+
+
+def get_eurostoxx50():
+    url = 'https://finance.yahoo.com/quote/%5ESTOXX50E/components?p=%5ESTOXX50E'
+    req = Request(url, headers={'User-Agent': "Magic Browser"})
+    con = urlopen(req, context=ssl.create_default_context(cafile=certifi.where()))
+    soup = BeautifulSoup(con.read(), 'lxml')
+    quotes = soup.find_all('a', class_='C($linkColor) Cur(p) Td(n) Fw(500)')
+    dat = []
+    for i in quotes:
+        t = str(i).find('>') + 1
+        dat += [str(i)[t:-4]]
+    return dat
