@@ -2,8 +2,10 @@
 {% block content %}
 <body>
 
-<div id="qwe">ASEDR</div>
-<p>ticker: {{ ticker }}</p>
+<div>Name: {{name}}</div>
+<div>Ticker: {{ ticker }}</div>
+<div id="price">Price: {{price}} {{cur}}</div>
+
 
 </body>
 
@@ -16,14 +18,13 @@ $(document).ready(function () {
            dataType: 'json',
            url: "{% url 'info' ticker=ticker %}",
            success: function(response){
-                $("#qwe").text(response.raw)
+                $("#price").text("Price: " + response.price.regularMarketPrice.raw + " {{ cur }}")
            },
-           error: function(jqXHR, exception, response){
-                $("#qwe").text(jqXHR.status)
-
+           error: function(jqXHR, exception){
+                $("#price").text(jqXHR.status)
            }
         });
-    }, 5000);
+    }, 3000);
 })
 </script>
 {% endblock content %}
