@@ -6,27 +6,36 @@ import ssl
 from bs4 import BeautifulSoup
 import xlrd
 
+CURRENCY_IMAGE = {
+    'RUB': 'https://gtmarket.ru/files/rouble-lebedev.jpg',
+    'USD': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Dollar_Sign.svg/1200px-Dollar_Sign.svg.png',
+    'EUR': 'https://cdn-icons-png.flaticon.com/512/32/32719.png'
+}
+
+INDEXES = (('IMOEX.ME', 'IMOEX', 'RUB'), ('%5EIXIC', 'Nasdaq100', 'USD'), ('%5EGSPC', 'S&P500', 'USD'),
+           ('%5EDJI', 'Dow Jones', 'USD'), ('%5ESTOXX50E', 'Eurostoxx50', 'EUR'))
 
 def get_stocks_spb():
     url = "https://spbexchange.ru/ru/listing/securities/list/?csv=download"
-    resp = urlopen(url, context=ssl.create_default_context(cafile=certifi.where()))
-    lines = [l.decode('utf-8') for l in resp.readlines()]
-    cr = csv.reader(lines)
-    dat = []
-    normal_list = []
-    for i in cr:
-        s = ''
-        for j in i:
-            s += j
-        normal_list.append(s.split(';'))
-    for i in normal_list:
-        if ' ' in i[6]: i[6] = i[6].replace(' ', '-')
+    # req = Request(url, headers={'User-Agent': "Mozilla/5.0"})
+    # resp = urlopen(req, context=ssl.create_default_context(cafile=certifi.where()))
+    with open('ListingSecurityList.csv', encoding='utf-8') as f:
+        cr = csv.reader(f)
+        dat = []
+        normal_list = []
+        for i in cr:
+            s = ''
+            for j in i:
+                s += j
+            normal_list.append(s.split(';'))
+        for i in normal_list:
+            if ' ' in i[6]: i[6] = i[6].replace(' ', '-')
 
-        if i[5].startswith('Акции иностранного'):
-            dat += [i[6]]
-        elif i[5].startswith('Акции обыкновенные'):
-            dat += [str(i[6]) + '.ME']
-    return dat
+            if i[5].startswith('Акции иностранного'):
+                dat += [i[6]]
+            elif i[5].startswith('Акции обыкновенные'):
+                dat += [str(i[6]) + '.ME']
+        return dat
 
 
 def get_stocks_moex():
@@ -56,9 +65,15 @@ def get_stock_info(ticker: str):
 
 def filter_stocks():
     dat = get_stocks_moex() + get_stocks_spb() + get_eurostoxx50()
-    print(*dat, sep='\n')
+    dat = set(dat)
+    print(len(dat))
+    c = 0
+    #print(*dat, sep='\n')
     filtered = []
+    tickers = []
     for i in dat:
+        c += 1
+        print(c)
         try:
             resp = urlopen(
                 f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{i}?modules=defaultKeyStatistics,price")
@@ -71,10 +86,14 @@ def filter_stocks():
             if a['price']['regularMarketPrice']['raw'] == 0: raise
         except:
             continue
-        a['price']['marketCap']['raw'] = dict(a['price']['marketCap']).get('raw', 0)
-        filtered += [a]
-        #print(f"{a['price']['symbol']} {a['price']['shortName']} {a['price']['currency']} {a['price']['regularMarketDayLow']['raw']} {a['price']['marketCap']['raw']}")
-    return filtered
+
+        try:
+            a['price']['marketCap']['raw'] = dict(a['price']['marketCap']).get('raw', 0)
+            filtered += [a]
+            tickers += [a['price']['symbol']]
+        except:
+            continue
+    return (filtered, tickers)
 
 
 def get_nasdaq100():
@@ -85,7 +104,7 @@ def get_nasdaq100():
     sheet = xls.sheet_by_index(0)
     dat = []
     for i in range(1, sheet.nrows):
-        dat += [sheet.cell_value(i, 2)]
+        dat += [(sheet.cell_value(i, 2), 'Nasdaq100')]
     return dat
 
 
@@ -97,7 +116,7 @@ def get_sandp500():
     sheet = xls.sheet_by_index(0)
     dat = []
     for i in range(1, sheet.nrows):
-        dat += [sheet.cell_value(i, 2)]
+        dat += [(sheet.cell_value(i, 2), 'S&P500')]
     return dat
 
 
@@ -109,7 +128,7 @@ def get_dowjones():
     sheet = xls.sheet_by_index(0)
     dat = []
     for i in range(3, 33):
-        dat += [sheet.cell_value(i, 2)]
+        dat += [(sheet.cell_value(i, 2), 'Dow Jones')]
     return dat
 
 
@@ -123,7 +142,7 @@ def get_imoex():
     for i in range(4, sheet.nrows):
         if sheet.cell_value(i, 1) == '':
             break
-        dat += [sheet.cell_value(i, 1)]
+        dat += [(sheet.cell_value(i, 1), 'IMOEX')]
     return dat
 
 
@@ -136,5 +155,13 @@ def get_eurostoxx50():
     dat = []
     for i in quotes:
         t = str(i).find('>') + 1
-        dat += [str(i)[t:-4]]
+        dat += [(str(i)[t:-4])]
+    return dat
+
+
+def get_all_indexes():
+    dat = get_eurostoxx50()
+    for i in range(len(dat)):
+        dat[i] = (dat[i], 'Eurostoxx50')
+    dat += get_nasdaq100() + get_sandp500() + get_dowjones() + get_imoex()
     return dat

@@ -7,4 +7,9 @@ urlpatterns = [
     path('get_info/<str:ticker>', view.get_info, name='info'),
     path('get_courses', view.get_cur_courses, name='courses'),
     path('fillbase', view.fill_base),
+    path('search', view.search_view, name='search'),
+    path('fillbase/fillindex', view.fill_indexes)
 ]
+
+handler404 = view.custom404
+handler500 = view.custom500
