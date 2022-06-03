@@ -13,6 +13,17 @@ def get_info(request, ticker):
 
 
 def fill_indexes(request):
+    for i in INDEXES:
+        try:
+            mdl.Index.objects.get(name=i[1])
+        except mdl.Index.DoesNotExist:
+            mdl.Index.objects.create(
+                indexTicker=i[0],
+                name=i[1],
+                currency=i[2],
+                price=0
+            )
+
     dat = get_all_indexes()
     for i in dat:
         try:
@@ -25,7 +36,7 @@ def fill_indexes(request):
             ind_st = mdl.Index.objects.get(name=ind.name, stock__ticker=st.ticker)
         except mdl.Index.DoesNotExist:
             ind.stock.add(st)
-
+    return JsonResponse({'status': 'OK'})
 
 
 def get_cur_courses(request):
@@ -102,8 +113,19 @@ def stock_view(request, ticker):
     return render(request, "main/stock.html", context={
         "ticker": ticker,
         "price": dat['price']['regularMarketPrice']['raw'],
+        "price_open": dat['price']['regularMarketOpen']['raw'],
+        "change": dat['price']['regularMarketChange']['fmt'],
+        "change_perc": dat['price']['regularMarketChangePercent']['fmt'],
         "name": dat['price']['shortName'],
-        "cur": dat['price']['currency']
+        "cur": dat['price']['currency'],
+        "divs": dat['defaultKeyStatistics']['lastDividendValue']['raw'] if 'raw' in dat['defaultKeyStatistics']['lastDividendValue'] else 0,
+        "div_date": dat['defaultKeyStatistics']['lastDividendDate']['fmt'] if 'fmt' in dat['defaultKeyStatistics']['lastDividendDate'] else '-',
+        "low": dat['price']['regularMarketDayLow']['raw'],
+        "high": dat['price']['regularMarketDayHigh']['raw'],
+        "beta": dat['defaultKeyStatistics']['beta']['fmt'],
+        "net_inc": dat['defaultKeyStatistics']['netIncomeToCommon']['raw'],
+        "PE": dat['defaultKeyStatistics']['forwardPE']['fmt'],
+        "cap": dat['price']['marketCap']['raw'],
     })
 
 

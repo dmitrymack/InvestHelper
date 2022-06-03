@@ -1,10 +1,20 @@
 {% extends "main/base.html" %}
 {% block content %}
 
-
-<div>Name: {{name}}</div>
-<div>Ticker: {{ ticker }}</div>
-<div id="price">Price: {{price}} {{cur}}</div>
+<div class="container">
+    <div align="center"><h2>{{ name }} ({{ ticker }})</h2></div>
+    <div>Цена: <span id="price">{{ price }}</span> {{ cur }}</div>
+    <div>Цена на открытии: {{ price_open }} {{cur}}</div>
+    <div>Изменение за день: <span id="change">{{ change }}</span> {{ cur }}</div>
+    <div>Изменение за день (%): <span id="change_perc">{{ change_perc }}</span></div>
+    <div>Варьирование цены за день: {{ low }} — {{ high }} {{ cur }}</div>
+    <div>P/E: {{ PE }}</div>
+    <div>Бета: {{ beta }}</div>
+    <div>Величина последних дивидендов: {{ divs }} {{ cur }}</div>
+    <div>Дата выплаты последних дивидендов: {{ div_date }}</div>
+    <div>Чистый доход компании: {{ net_inc }} {{ cur }}</div>
+    <div>Рыночная капитализация компании: {{ cap }} {{ cur }}</div>
+</div>
 
 
 
@@ -17,7 +27,9 @@ $(document).ready(function () {
            dataType: 'json',
            url: "{% url 'info' ticker=ticker %}",
            success: function(response){
-                $("#price").text("Price: " + response.price.regularMarketPrice.raw + " {{ cur }}")
+                $("#price").text(response.price.regularMarketPrice.raw)
+                $("#change").text(response.price.regularMarketChange.fmt)
+                $("#change_perc").text(response.price.regularMarketChangePercent.fmt)
            },
            error: function(jqXHR, exception){
                 $("#price").text(jqXHR.status)
