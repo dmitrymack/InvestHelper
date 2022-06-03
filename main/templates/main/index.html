@@ -1,8 +1,40 @@
 {% extends "main/base.html" %}
 {% block content %}
 
-{% for i in m %}
-    <p>{{ i.ticker }}</p>
-{% endfor %}
+<div class="container pt-3">
+    <div align="center"><a href="{% url 'all' %}"><button class="btn btn-outline-dark"><h3>Список всех ценных бумаг</h3></button></a></div>
+    <div class="row">
+        {% for i1, i2 in ind %}
+        <div class="col-md-auto pt-5">
+            <table class="table">
+                <thead class="thead-light">
+                    <tr align="center">
+                        <th scope="col">Индекс: {{ i1 }} (Market cap top-10)<br>
+                            <a href="{% url 'index' index=i1 %}">Полный список</a></th>
+                    </tr>
+                </thead>
+            </table>
+            <table class="table">
+              <thead class="thead-dark" align="center">
+                <tr>
+                  <th scope="col">Тикер</th>
+                  <th scope="col">Компания</th>
+                  <th scope="col">Капитализация</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for j in i2 %}
+                <tr>
+                  <th scope="row"><a href="{% url 'stock' ticker=j.ticker %}">{{ j.ticker }}</a></th>
+                  <td>{{ j.name }}</td>
+                  <td>{{ j.cap }} {{ j.currency }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+       {% endfor %}
+    </div>
+</div>
 
 {% endblock content %}

@@ -49,7 +49,7 @@ def get_stocks_moex():
         if (not dat): break
         start += 100
         for i in dat:
-            if len(i[0]) > 4 or str(i[0]).islower() or not i[1]: continue
+            if len(i[0]) > 5 or str(i[0]).islower() or not i[1]: continue
             shdat += [str(i[0]) + '.ME']
     return shdat
 
@@ -142,7 +142,7 @@ def get_imoex():
     for i in range(4, sheet.nrows):
         if sheet.cell_value(i, 1) == '':
             break
-        dat += [(sheet.cell_value(i, 1), 'IMOEX')]
+        dat += [(sheet.cell_value(i, 1) + '.ME', 'IMOEX')]
     return dat
 
 

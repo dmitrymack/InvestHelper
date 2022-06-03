@@ -13,14 +13,6 @@ def get_info(request, ticker):
 
 
 def fill_indexes(request):
-    # mdl.Index.objects.all().delete()
-    # for i in INDEXES:
-    #     mdl.Index.objects.create(
-    #         indexTicker=i[0],
-    #         name=i[1],
-    #         currency=i[2],
-    #         price=0
-    #     )
     dat = get_all_indexes()
     for i in dat:
         try:
@@ -28,9 +20,11 @@ def fill_indexes(request):
             st = mdl.Stock.objects.get(ticker=i[0])
         except:
             continue
-        ind_st = mdl.IndexStocks.objects.create()
-        ind_st.ticker.add(st)
-        ind_st.index.add(ind)
+
+        try:
+            ind_st = mdl.Index.objects.get(name=ind.name, stock__ticker=st.ticker)
+        except mdl.Index.DoesNotExist:
+            ind.stock.add(st)
 
 
 
@@ -76,10 +70,25 @@ def fill_base(request):
 
 
 def main_view(request):
-    a = mdl.Stock.objects.get(ticker="SBER.ME")
-    a.dailyLow = 10
-    a.delete()
-    return render(request, "main/index.html")
+    queryset = []
+    queryset += [mdl.Index.objects.get(name='IMOEX').stock.order_by('-cap')[:10]]
+    queryset += [mdl.Index.objects.get(name='S&P500').stock.order_by('-cap')[:10]]
+    queryset += [mdl.Index.objects.get(name='Nasdaq100').stock.order_by('-cap')[:10]]
+    queryset += [mdl.Index.objects.get(name='Dow Jones').stock.order_by('-cap')[:10]]
+    queryset += [mdl.Index.objects.get(name='Eurostoxx50').stock.order_by('-cap')[:10]]
+    ind = zip(['IMOEX', 'S&P500', 'Nasdaq100', 'Dow Jones', 'Eurostoxx50'], queryset)
+    return render(request, "main/index.html", context={
+        'ind': ind,
+    })
+
+
+def index_view(request, index):
+    st = mdl.Index.objects.get(name=index).stock.order_by('-cap')
+    return render(request, "main/index_stocks.html", context={
+        'name': index,
+        'stocks': st,
+        'image': CURRENCY_IMAGE
+    })
 
 
 def stock_view(request, ticker):
@@ -102,12 +111,20 @@ def search_view(request):
     res = request.GET.get('s')
     queryset = mdl.Stock.objects.filter(
         Q(ticker__icontains=res) | Q(name__icontains=res),
-    )
-    queryset = sorted(queryset, key=lambda x: x.ticker)
+    ).order_by('ticker')
     return render(request, "main/search_result.html", context={
         'stocks': queryset,
         'count': len(queryset),
         'search': res,
+        'image': CURRENCY_IMAGE
+    })
+
+
+def all_view(request):
+    queryset = mdl.Stock.objects.all().order_by('ticker')
+    return render(request, "main/search_result.html", context={
+        'stocks': queryset,
+        'count': len(queryset),
         'image': CURRENCY_IMAGE
     })
 

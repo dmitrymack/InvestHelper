@@ -8,7 +8,9 @@ urlpatterns = [
     path('get_courses', view.get_cur_courses, name='courses'),
     path('fillbase', view.fill_base),
     path('search', view.search_view, name='search'),
-    path('fillbase/fillindex', view.fill_indexes)
+    path('fillbase/fillindex', view.fill_indexes),
+    path('index/<str:index>', view.index_view, name='index'),
+    path('all_stocks', view.all_view, name='all'),
 ]
 
 handler404 = view.custom404

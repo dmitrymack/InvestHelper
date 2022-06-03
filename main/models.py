@@ -12,8 +12,8 @@ class Stock(models.Model):
 
 
 class Bookmark(models.Model):
-    user = models.ManyToManyField(User)
-    ticker = models.ManyToManyField(Stock)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True)
 
 
 class Index(models.Model):
@@ -21,14 +21,10 @@ class Index(models.Model):
     name = models.CharField(max_length=50)
     currency = models.CharField(max_length=5)
     price = models.DecimalField(max_digits=9, decimal_places=2)
-
-
-class IndexStocks(models.Model):
-    ticker = models.ManyToManyField(Stock)
-    index = models.ManyToManyField(Index)
+    stock = models.ManyToManyField(Stock)
 
 
 class Comment(models.Model):
-    user = models.ManyToManyField(User)
-    ticker = models.ManyToManyField(Stock)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    stock = models.ManyToManyField(Stock)
     comment = models.TextField()
