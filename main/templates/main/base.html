@@ -5,6 +5,8 @@
     <title>Invest Helper</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
@@ -50,7 +52,7 @@
           </li>
 
         </ul>
-            <div class="nav-item active ">
+            <div class="nav-item active mx-auto">
 
             {% if request.user.is_authenticated %}
 
@@ -62,11 +64,11 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" href="#">Избранное</a>
                 <a class="dropdown-item" href="#">Комментарии</a>
-                <a class="dropdown-item" href="#">Выход</a>
+                <a class="dropdown-item" href="{% url 'logout' %}">Выход</a>
               </div>
             </div>
             {% else %}
-            <a href="#" class="nav-link font-weight-bold">Вход</a>
+            <a href="{% url 'login' %}" class="nav-link font-weight-bold">Вход</a>
             {% endif %}
           </div>
 

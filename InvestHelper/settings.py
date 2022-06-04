@@ -41,8 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_celery_beat',
+    'crispy_forms',
 
     'main',
+    'accounts',
 ]
 
 MIDDLEWARE = [

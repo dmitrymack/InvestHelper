@@ -14,6 +14,12 @@
     <div>Дата выплаты последних дивидендов: {{ div_date }}</div>
     <div>Чистый доход компании: {{ net_inc }} {{ cur }}</div>
     <div>Рыночная капитализация компании: {{ cap }} {{ cur }}</div>
+    {% if ind != 0 %}
+        <div>Входит в индексы: |
+        {% for i in ind %}
+            <a href="{% url 'index' index=i.name %}"><b>{{ i.name }}</b> </a> |
+        {% endfor %}</div>
+    {% endif %}
 </div>
 
 

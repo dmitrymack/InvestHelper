@@ -57,26 +57,21 @@ def fill_base(request):
     for i in dat[0]:
         c += 1
         print("URA " + str(c))
-        try:
-            st = mdl.Stock.objects.get(ticker=i['price']['symbol'])
-            if st.ticker not in dat[1]:
-                st.delete()
-            else:
-                st.name = i['price']['shortName'],
-                st.dailyLow = i['price']['regularMarketDayLow']['raw'],
-                st.dailyHigh = i['price']['regularMarketDayHigh']['raw'],
-                st.currency = i['price']['currency'],
-                st.cap = i['price']['marketCap']['raw']
-                st.save()
-        except mdl.Stock.DoesNotExist:
-            mdl.Stock.objects.create(
-                ticker=i['price']['symbol'],
-                name=i['price']['shortName'],
-                dailyLow=i['price']['regularMarketDayLow']['raw'],
-                dailyHigh=i['price']['regularMarketDayHigh']['raw'],
-                currency=i['price']['currency'],
-                cap=i['price']['marketCap']['raw'],
-            )
+
+        mdl.Stock.objects.update_or_create(
+            ticker=i['price']['symbol'],
+            name=i['price']['shortName'],
+            dailyLow=i['price']['regularMarketDayLow']['raw'],
+            dailyHigh=i['price']['regularMarketDayHigh']['raw'],
+            currency=i['price']['currency'],
+            cap=i['price']['marketCap']['raw'],
+        )
+
+    # st = mdl.Stock.objects.all()
+    # for i in st:
+    #     if i.ticker not in dat[1]:
+    #         i.delete()
+
     return render(request, "main/index.html")
 
 
@@ -110,6 +105,9 @@ def stock_view(request, ticker):
     except mdl.Stock.MultipleObjectsReturned:
         pass
     dat = get_stock_info(ticker)
+    ind = mdl.Index.objects.filter(stock__ticker=ticker)
+    if len(ind) == 0:
+        ind = 0
     return render(request, "main/stock.html", context={
         "ticker": ticker,
         "price": dat['price']['regularMarketPrice']['raw'],
@@ -126,6 +124,7 @@ def stock_view(request, ticker):
         "net_inc": dat['defaultKeyStatistics']['netIncomeToCommon']['raw'],
         "PE": dat['defaultKeyStatistics']['forwardPE']['fmt'],
         "cap": dat['price']['marketCap']['raw'],
+        "ind": ind
     })
 
 
