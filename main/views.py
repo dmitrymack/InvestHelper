@@ -3,7 +3,7 @@ from django.http import JsonResponse, Http404, HttpResponseNotFound, HttpRespons
 from django.shortcuts import render
 from urllib.request import urlopen
 import json
-from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes
+from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes, BOOKMARK_IMAGES
 import main.models as mdl
 
 
@@ -108,6 +108,14 @@ def stock_view(request, ticker):
     ind = mdl.Index.objects.filter(stock__ticker=ticker)
     if len(ind) == 0:
         ind = 0
+
+    bkm = 0
+    try:
+        mdl.Bookmark.objects.get(stock__ticker=ticker, user__id=request.user.id)
+        bkm = 1
+    except mdl.Bookmark.DoesNotExist:
+        pass
+
     return render(request, "main/stock.html", context={
         "ticker": ticker,
         "price": dat['price']['regularMarketPrice']['raw'],
@@ -116,15 +124,19 @@ def stock_view(request, ticker):
         "change_perc": dat['price']['regularMarketChangePercent']['fmt'],
         "name": dat['price']['shortName'],
         "cur": dat['price']['currency'],
-        "divs": dat['defaultKeyStatistics']['lastDividendValue']['raw'] if 'raw' in dat['defaultKeyStatistics']['lastDividendValue'] else 0,
-        "div_date": dat['defaultKeyStatistics']['lastDividendDate']['fmt'] if 'fmt' in dat['defaultKeyStatistics']['lastDividendDate'] else '-',
+        "divs": dat['defaultKeyStatistics']['lastDividendValue']['raw']
+            if 'raw' in dat['defaultKeyStatistics']['lastDividendValue'] else 0,
+        "div_date": dat['defaultKeyStatistics']['lastDividendDate']['fmt']
+            if 'fmt' in dat['defaultKeyStatistics']['lastDividendDate'] else '-',
         "low": dat['price']['regularMarketDayLow']['raw'],
         "high": dat['price']['regularMarketDayHigh']['raw'],
         "beta": dat['defaultKeyStatistics']['beta']['fmt'],
         "net_inc": dat['defaultKeyStatistics']['netIncomeToCommon']['raw'],
-        "PE": dat['defaultKeyStatistics']['forwardPE']['fmt'],
+        "PE": dat['defaultKeyStatistics']['forwardPE']['fmt']
+            if 'fmt' in dat['defaultKeyStatistics']['forwardPE'] else '-',
         "cap": dat['price']['marketCap']['raw'],
-        "ind": ind
+        "ind": ind,
+        "img": BOOKMARK_IMAGES[bkm],
     })
 
 
@@ -146,6 +158,35 @@ def all_view(request):
     return render(request, "main/search_result.html", context={
         'stocks': queryset,
         'count': len(queryset),
+        'image': CURRENCY_IMAGE
+    })
+
+
+def bookmark(request, ticker):
+    user = request.user
+    stock = mdl.Stock.objects.get(ticker=ticker)
+    resp = 0
+    try:
+        bk = mdl.Bookmark.objects.get(stock__ticker=ticker, user__id=user.id)
+        bk.delete()
+    except mdl.Bookmark.DoesNotExist:
+        mdl.Bookmark.objects.create(
+            user=user,
+            stock=stock
+        )
+        resp = 1
+    return JsonResponse({'resp': resp})
+
+
+def bookmark_view(request):
+    queryset = mdl.Bookmark.objects.filter(user__id=request.user.id)
+    qs = []
+    for i in range(len(queryset)):
+        qs += [queryset[i].stock]
+
+    return render(request, "main/search_result.html", context={
+        'stocks': qs,
+        'count': len(qs),
         'image': CURRENCY_IMAGE
     })
 

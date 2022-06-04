@@ -3,6 +3,11 @@
 
 <div class="container">
     <div align="center"><h2>{{ name }} ({{ ticker }})</h2></div>
+    {% if request.user.is_authenticated %}
+    <div align="center">Избранное:
+        <button class="btn" id="bkm"><img src="{{ img }}" id="img" height="20" width="20"></button>
+    </div>
+    {% endif %}
     <div>Цена: <span id="price">{{ price }}</span> {{ cur }}</div>
     <div>Цена на открытии: {{ price_open }} {{cur}}</div>
     <div>Изменение за день: <span id="change">{{ change }}</span> {{ cur }}</div>
@@ -22,7 +27,7 @@
     {% endif %}
 </div>
 
-
+<img src="">
 
 <script>
 $(document).ready(function () {
@@ -42,6 +47,24 @@ $(document).ready(function () {
            }
         });
     }, 3000);
-})
+});
+
+$(document).ready(function () {
+    $("#bkm").click(function(){
+        $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: "{% url 'bookmark' ticker=ticker %}",
+            success: function(resp){
+                if (resp.resp == 1){
+                    $("#img").attr("src", "https://pngicon.ru/file/uploads/izbrannoye.png")
+                }
+                else{
+                    $("#img").attr("src", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdsjZoUEo-xAXFT98_2Xjctj2ZI_lEFizoBKzxsXWHEH474poBf8X1dkeLUeqA1QvDpUU&usqp=CAU")
+                }
+            }
+        });
+    });
+});
 </script>
 {% endblock content %}

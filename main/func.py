@@ -15,6 +15,11 @@ CURRENCY_IMAGE = {
 INDEXES = (('IMOEX.ME', 'IMOEX', 'RUB'), ('%5EIXIC', 'Nasdaq100', 'USD'), ('%5EGSPC', 'S&P500', 'USD'),
            ('%5EDJI', 'Dow Jones', 'USD'), ('%5ESTOXX50E', 'Eurostoxx50', 'EUR'))
 
+BOOKMARK_IMAGES = {
+    0: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdsjZoUEo-xAXFT98_2Xjctj2ZI_lEFizoBKzxsXWHEH474poBf8X1dkeLUeqA1QvDpUU&usqp=CAU",
+    1: "https://pngicon.ru/file/uploads/izbrannoye.png"
+}
+
 def get_stocks_spb():
     url = "https://spbexchange.ru/ru/listing/securities/list/?csv=download"
     # req = Request(url, headers={'User-Agent': "Mozilla/5.0"})

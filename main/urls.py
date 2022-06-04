@@ -11,6 +11,8 @@ urlpatterns = [
     path('fillbase/fillindex', view.fill_indexes),
     path('index/<str:index>', view.index_view, name='index'),
     path('all_stocks', view.all_view, name='all'),
+    path('bookmark/<str:ticker>', view.bookmark, name='bookmark'),
+    path('my_bookmarks', view.bookmark_view, name='my_bkm'),
 ]
 
 handler404 = view.custom404
