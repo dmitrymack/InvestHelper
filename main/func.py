@@ -20,6 +20,16 @@ BOOKMARK_IMAGES = {
     1: "https://pngicon.ru/file/uploads/izbrannoye.png"
 }
 
+
+def res_word_end(num):
+    if 10 <= num % 100 <= 20 or 5 <= num % 10 <= 9 or num % 10 == 0:
+        return 'результатов'
+    elif num % 10 == 1:
+        return 'результат'
+    else:
+        return 'результата'
+
+
 def get_stocks_spb():
     url = "https://spbexchange.ru/ru/listing/securities/list/?csv=download"
     # req = Request(url, headers={'User-Agent': "Mozilla/5.0"})
@@ -51,7 +61,7 @@ def get_stocks_moex():
             f"https://iss.moex.com/iss/securities.json?group_by=type&group_by_filter=common_share&q=RU&iss.meta=off&securities.columns=secid,marketprice_boardid&start={start}")
         dat = json.loads(resp.read())
         dat = dat['securities']['data']
-        if (not dat): break
+        if not dat: break
         start += 100
         for i in dat:
             if len(i[0]) > 5 or str(i[0]).islower() or not i[1]: continue
@@ -73,7 +83,6 @@ def filter_stocks():
     dat = set(dat)
     print(len(dat))
     c = 0
-    #print(*dat, sep='\n')
     filtered = []
     tickers = []
     for i in dat:

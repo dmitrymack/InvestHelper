@@ -1,9 +1,10 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render
 from urllib.request import urlopen
 import json
-from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes, BOOKMARK_IMAGES
+from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes, BOOKMARK_IMAGES, res_word_end
 import main.models as mdl
 
 
@@ -98,8 +99,9 @@ def index_view(request, index):
 
 
 def stock_view(request, ticker):
+    st = ''
     try:
-        mdl.Stock.objects.get(ticker=ticker)
+        st = mdl.Stock.objects.get(ticker=ticker)
     except mdl.Stock.DoesNotExist:
         raise Http404
     except mdl.Stock.MultipleObjectsReturned:
@@ -115,6 +117,18 @@ def stock_view(request, ticker):
         bkm = 1
     except mdl.Bookmark.DoesNotExist:
         pass
+
+    if request.method == 'POST':
+        print(st)
+        print('afs')
+        comm = request.POST.get('comm')
+        c = mdl.Comment.objects.create(
+            comment=comm,
+            user=request.user,
+        )
+        c.stock.add(st)
+
+    comments = mdl.Comment.objects.filter(stock__ticker=ticker).order_by('-id')
 
     return render(request, "main/stock.html", context={
         "ticker": ticker,
@@ -137,6 +151,7 @@ def stock_view(request, ticker):
         "cap": dat['price']['marketCap']['raw'],
         "ind": ind,
         "img": BOOKMARK_IMAGES[bkm],
+        "comm": comments
     })
 
 
@@ -145,20 +160,24 @@ def search_view(request):
     queryset = mdl.Stock.objects.filter(
         Q(ticker__icontains=res) | Q(name__icontains=res),
     ).order_by('ticker')
+    res_word = res_word_end(len(queryset))
     return render(request, "main/search_result.html", context={
         'stocks': queryset,
         'count': len(queryset),
         'search': res,
-        'image': CURRENCY_IMAGE
+        'image': CURRENCY_IMAGE,
+        'word': res_word
     })
 
 
 def all_view(request):
     queryset = mdl.Stock.objects.all().order_by('ticker')
+    res_word = res_word_end(len(queryset))
     return render(request, "main/search_result.html", context={
         'stocks': queryset,
         'count': len(queryset),
-        'image': CURRENCY_IMAGE
+        'image': CURRENCY_IMAGE,
+        'word': res_word
     })
 
 
@@ -178,16 +197,32 @@ def bookmark(request, ticker):
     return JsonResponse({'resp': resp})
 
 
+@login_required
 def bookmark_view(request):
     queryset = mdl.Bookmark.objects.filter(user__id=request.user.id)
     qs = []
     for i in range(len(queryset)):
         qs += [queryset[i].stock]
-
+    res_word = res_word_end(len(qs))
     return render(request, "main/search_result.html", context={
         'stocks': qs,
         'count': len(qs),
-        'image': CURRENCY_IMAGE
+        'image': CURRENCY_IMAGE,
+        'is_bkm': True,
+        'word': res_word
+    })
+
+
+@login_required
+def comments_view(request):
+    queryset = mdl.Comment.objects.filter(user__id=request.user.id).order_by('-id')
+    stocks = []
+    for i in queryset:
+        stocks += [i.stock.get()]
+    print(stocks)
+    return render(request, "main/comments.html", context={
+        'comm': zip(queryset, stocks),
+        'count': len(queryset)
     })
 
 

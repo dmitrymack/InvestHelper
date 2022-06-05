@@ -13,6 +13,7 @@ urlpatterns = [
     path('all_stocks', view.all_view, name='all'),
     path('bookmark/<str:ticker>', view.bookmark, name='bookmark'),
     path('my_bookmarks', view.bookmark_view, name='my_bkm'),
+    path('my_comments', view.comments_view, name='my_comm'),
 ]
 
 handler404 = view.custom404

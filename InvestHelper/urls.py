@@ -21,7 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),
 
-    path('register', acc.SignUpView.as_view(), name='register'),
-    path('login', acc.MyLoginView.as_view(), name='login'),
+    path('accounts/register/', acc.SignUpView.as_view(), name='register'),
+    path('accounts/login/', acc.MyLoginView.as_view(), name='login'),
     path('logout', acc.logout_user, name='logout'),
 ]
