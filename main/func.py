@@ -6,6 +6,7 @@ import ssl
 from bs4 import BeautifulSoup
 import xlrd
 
+
 CURRENCY_IMAGE = {
     'RUB': 'https://gtmarket.ru/files/rouble-lebedev.jpg',
     'USD': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Dollar_Sign.svg/1200px-Dollar_Sign.svg.png',

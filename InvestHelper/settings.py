@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django_celery_beat',
     'crispy_forms',
 
     'main',
@@ -135,4 +134,3 @@ STATICFILES_DIRS = ( os.path.join('static'), )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#CELERYBEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

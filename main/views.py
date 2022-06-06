@@ -6,38 +6,14 @@ from urllib.request import urlopen
 import json
 from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes, BOOKMARK_IMAGES, res_word_end
 import main.models as mdl
+from threading import Thread
+from time import sleep
+from datetime import datetime
 
 
 def get_info(request, ticker):
     response = get_stock_info(ticker)
     return JsonResponse(response)
-
-
-def fill_indexes(request):
-    for i in INDEXES:
-        try:
-            mdl.Index.objects.get(name=i[1])
-        except mdl.Index.DoesNotExist:
-            mdl.Index.objects.create(
-                indexTicker=i[0],
-                name=i[1],
-                currency=i[2],
-                price=0
-            )
-
-    dat = get_all_indexes()
-    for i in dat:
-        try:
-            ind = mdl.Index.objects.get(name=i[1])
-            st = mdl.Stock.objects.get(ticker=i[0])
-        except:
-            continue
-
-        try:
-            ind_st = mdl.Index.objects.get(name=ind.name, stock__ticker=st.ticker)
-        except mdl.Index.DoesNotExist:
-            ind.stock.add(st)
-    return JsonResponse({'status': 'OK'})
 
 
 def get_cur_courses(request):
@@ -52,31 +28,9 @@ def get_cur_courses(request):
     return JsonResponse(dat)
 
 
-def fill_base(request):
-    dat = filter_stocks()
-    c = 0
-    for i in dat[0]:
-        c += 1
-        print("URA " + str(c))
-
-        mdl.Stock.objects.update_or_create(
-            ticker=i['price']['symbol'],
-            name=i['price']['shortName'],
-            dailyLow=i['price']['regularMarketDayLow']['raw'],
-            dailyHigh=i['price']['regularMarketDayHigh']['raw'],
-            currency=i['price']['currency'],
-            cap=i['price']['marketCap']['raw'],
-        )
-
-    # st = mdl.Stock.objects.all()
-    # for i in st:
-    #     if i.ticker not in dat[1]:
-    #         i.delete()
-
-    return render(request, "main/index.html")
-
-
 def main_view(request):
+    # th = Thread(target=periodic_fill)
+    #th.start()
     queryset = []
     queryset += [mdl.Index.objects.get(name='IMOEX').stock.order_by('-cap')[:10]]
     queryset += [mdl.Index.objects.get(name='S&P500').stock.order_by('-cap')[:10]]
@@ -119,8 +73,6 @@ def stock_view(request, ticker):
         pass
 
     if request.method == 'POST':
-        print(st)
-        print('afs')
         comm = request.POST.get('comm')
         c = mdl.Comment.objects.create(
             comment=comm,
@@ -232,3 +184,76 @@ def custom404(request, exception):
 
 def custom500(request):
     return HttpResponseServerError('<h1>Ошибка 500:</h1><h2>К сожалению, наш сервер сломался</h2>')
+
+
+def fill_indexes():
+    for i in INDEXES:
+        try:
+            mdl.Index.objects.get(name=i[1])
+        except mdl.Index.DoesNotExist:
+            mdl.Index.objects.create(
+                indexTicker=i[0],
+                name=i[1],
+                currency=i[2],
+                price=0
+            )
+
+    dat = get_all_indexes()
+    for i in dat:
+        try:
+            ind = mdl.Index.objects.get(name=i[1])
+            st = mdl.Stock.objects.get(ticker=i[0])
+        except:
+            continue
+
+        try:
+            ind_st = mdl.Index.objects.get(name=ind.name, stock__ticker=st.ticker)
+        except mdl.Index.DoesNotExist:
+            ind.stock.add(st)
+
+
+def fill_base():
+    dat = filter_stocks()
+    c = 0
+    for i in dat[0]:
+        c += 1
+        print("URA " + str(c))
+        try:
+            mdl.Stock.objects.update_or_create(
+                ticker=i['price']['symbol'],
+                defaults={
+                    'name': i['price']['shortName'],
+                    'dailyLow': i['price']['regularMarketDayLow']['raw'],
+                    'dailyHigh': i['price']['regularMarketDayHigh']['raw'],
+                    'currency': i['price']['currency'],
+                    'cap': i['price']['marketCap']['raw'],
+                }
+            )
+        except mdl.Stock.MultipleObjectsReturned:
+            continue
+
+    st = mdl.Stock.objects.all()
+    print(dat[1])
+    for i in st:
+        if i.ticker not in dat[1]:
+             i.delete()
+
+
+sl = 0
+
+
+def periodic_fill():
+    global sl
+    if sl >= 1:
+        return
+    else:
+        sl += 1
+        while True:
+            now = datetime.now()
+            if now.hour == 8 and now.minute == 0:
+                print("Start fill base")
+                fill_base()
+                fill_indexes()
+                sleep(24 * 60 * 60 - 120)
+            else:
+                sleep(10)
