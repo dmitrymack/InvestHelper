@@ -5,7 +5,7 @@ import certifi
 import ssl
 from bs4 import BeautifulSoup
 import xlrd
-
+import datetime
 
 CURRENCY_IMAGE = {
     'RUB': 'https://gtmarket.ru/files/rouble-lebedev.jpg',
@@ -179,4 +179,23 @@ def get_all_indexes():
     for i in range(len(dat)):
         dat[i] = (dat[i], 'Eurostoxx50')
     dat += get_nasdaq100() + get_sandp500() + get_dowjones() + get_imoex()
+    return dat
+
+
+def get_prices(ticker):
+    now = datetime.datetime.now()
+    now_ts = now.replace(tzinfo=datetime.timezone.utc).timestamp()
+    year_ago_ts = str(int(now_ts - 31536000))
+    now_ts = str(int(now_ts))
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?period1={year_ago_ts}&period2={now_ts}&interval=1d"
+    resp = urlopen(url)
+    a = json.loads(resp.read())['chart']['result'][0]
+    a = zip(a['timestamp'], a['indicators']['quote'][0]['close'])
+    dat = []
+    n = 0
+    for i, j in a:
+        if j is not None:
+            n = j
+        d = datetime.datetime.utcfromtimestamp(i).strftime('%d-%m-%Y')
+        dat += [(d, n)]
     return dat

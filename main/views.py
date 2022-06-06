@@ -4,7 +4,7 @@ from django.http import JsonResponse, Http404, HttpResponseNotFound, HttpRespons
 from django.shortcuts import render
 from urllib.request import urlopen
 import json
-from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes, BOOKMARK_IMAGES, res_word_end
+from .func import get_stock_info, filter_stocks, CURRENCY_IMAGE, INDEXES, get_all_indexes, BOOKMARK_IMAGES, res_word_end, get_prices
 import main.models as mdl
 from threading import Thread
 from time import sleep
@@ -29,8 +29,8 @@ def get_cur_courses(request):
 
 
 def main_view(request):
-    # th = Thread(target=periodic_fill)
-    #th.start()
+    th = Thread(target=periodic_fill)
+    th.start()
     queryset = []
     queryset += [mdl.Index.objects.get(name='IMOEX').stock.order_by('-cap')[:10]]
     queryset += [mdl.Index.objects.get(name='S&P500').stock.order_by('-cap')[:10]]
@@ -81,7 +81,7 @@ def stock_view(request, ticker):
         c.stock.add(st)
 
     comments = mdl.Comment.objects.filter(stock__ticker=ticker).order_by('-id')
-
+    gr = get_prices(ticker)
     return render(request, "main/stock.html", context={
         "ticker": ticker,
         "price": dat['price']['regularMarketPrice']['raw'],
@@ -103,7 +103,8 @@ def stock_view(request, ticker):
         "cap": dat['price']['marketCap']['raw'],
         "ind": ind,
         "img": BOOKMARK_IMAGES[bkm],
-        "comm": comments
+        "comm": comments,
+        "graph": gr,
     })
 
 
@@ -187,6 +188,7 @@ def custom500(request):
 
 
 def fill_indexes():
+    print("start fill indexes")
     for i in INDEXES:
         try:
             mdl.Index.objects.get(name=i[1])
@@ -210,6 +212,7 @@ def fill_indexes():
             ind_st = mdl.Index.objects.get(name=ind.name, stock__ticker=st.ticker)
         except mdl.Index.DoesNotExist:
             ind.stock.add(st)
+    print("end fill indexes")
 
 
 def fill_base():
@@ -233,7 +236,6 @@ def fill_base():
             continue
 
     st = mdl.Stock.objects.all()
-    print(dat[1])
     for i in st:
         if i.ticker not in dat[1]:
              i.delete()
@@ -250,7 +252,7 @@ def periodic_fill():
         sl += 1
         while True:
             now = datetime.now()
-            if now.hour == 8 and now.minute == 0:
+            if now.hour == 1 and now.minute == 0:
                 print("Start fill base")
                 fill_base()
                 fill_indexes()

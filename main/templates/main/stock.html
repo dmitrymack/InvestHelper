@@ -1,30 +1,75 @@
 {% extends "main/base.html" %}
 {% block content %}
+{% load googlecharts %}
 
 <div class="container">
-    <div align="center"><h2>{{ name }} ({{ ticker }})</h2></div>
-    {% if request.user.is_authenticated %}
-    <div align="center">Избранное:
-        <button class="btn" id="bkm"><img src="{{ img }}" id="img" height="20" width="20"></button>
+        <div align="center"><h2>{{ name }} ({{ ticker }})</h2></div>
+        {% if request.user.is_authenticated %}
+        <div align="center">Избранное:
+            <button class="btn" id="bkm"><img src="{{ img }}" id="img" height="20" width="20"></button>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col">
+            <div>Цена: <span id="price">{{ price }}</span> {{ cur }}</div>
+            <div>Цена на открытии: {{ price_open }} {{cur}}</div>
+            <div>Изменение за день: <span id="change">{{ change }}</span> {{ cur }}</div>
+            <div>Изменение за день (%): <span id="change_perc">{{ change_perc }}</span></div>
+            <div>Варьирование цены за день: {{ low }} — {{ high }} {{ cur }}</div>
+            <div>P/E: {{ PE }}</div>
+            <div>Бета: {{ beta }}</div>
+            <div>Величина последних дивидендов: {{ divs }} {{ cur }}</div>
+            <div>Дата выплаты последних дивидендов: {{ div_date }}</div>
+            <div>Чистый доход компании: {{ net_inc }} {{ cur }}</div>
+            <div>Рыночная капитализация компании: {{ cap }} {{ cur }}</div>
+
+            {% if ind != 0 %}
+                <div>Входит в индексы: |
+                {% for i in ind %}
+                    <a href="{% url 'index' index=i.name %}"><b>{{ i.name }}</b> </a> |
+                {% endfor %}</div>
+            {% endif %}
+            <div class="text-muted pt-3">
+                Коэффициент P/E (price to earnings) цена/прибыль на одну акцию — показывает<br>
+                недооцененные и переоцененные компании относительно потенциальной прибыли<br>
+                компании, а также количество лет, за которые окупятся акции.<br>
+                <br>
+                Коэффициент бета – это статистический коэффициент, который характеризует<br>
+                движение отдельной акции относительно всего рынка в целом.<br>
+                Если бета > 0, то цена акции прямо связана с ценой фондового<br>
+                индекса (при значении бета = 1 движение цены акции полностью<br>
+                повторяет движение цены индекса, если бета > 1, то акция более<br>
+                чувствительно реагирует на изменение цены индекса).<br>
+                Если бета = 0, то цена акции не коррелирует с ценой индекса.<br>
+                Если бета < 0, то цена акции имеет обратную корреляцию с ценой индекса.
+            </div>
+        </div>
+    {% googlecharts %}
+        {% data graph "count" %}
+            {% col "string" "Date" %}"{{ val }}"{% endcol %}
+            {% col "number" "Price" %}{{ val }}{% endcol %}
+        {% enddata %}
+        {% options %}
+            kind: "LineChart",
+            options: {
+                backgroundColor: "#f9f9f9",
+                colors: ["#09f"],
+                gridlineColor: "#ddd",
+                legend: "none",
+                vAxis: {minValue: 0},
+                chartArea:{left:40,top:40,width:450,height:420},
+                width: 500,
+                height: 500
+		}
+	    {% endoptions %}
+        {% graph "graphic" "count" %}
+    {% endgooglecharts %}
+
+        <div class="col-4">
+            <div id="graphic" class=""></div>
+            <div class="pt-1" align="right"><b>График цены за последний год</b></div>
+        </div>
     </div>
-    {% endif %}
-    <div>Цена: <span id="price">{{ price }}</span> {{ cur }}</div>
-    <div>Цена на открытии: {{ price_open }} {{cur}}</div>
-    <div>Изменение за день: <span id="change">{{ change }}</span> {{ cur }}</div>
-    <div>Изменение за день (%): <span id="change_perc">{{ change_perc }}</span></div>
-    <div>Варьирование цены за день: {{ low }} — {{ high }} {{ cur }}</div>
-    <div>P/E: {{ PE }}</div>
-    <div>Бета: {{ beta }}</div>
-    <div>Величина последних дивидендов: {{ divs }} {{ cur }}</div>
-    <div>Дата выплаты последних дивидендов: {{ div_date }}</div>
-    <div>Чистый доход компании: {{ net_inc }} {{ cur }}</div>
-    <div>Рыночная капитализация компании: {{ cap }} {{ cur }}</div>
-    {% if ind != 0 %}
-        <div>Входит в индексы: |
-        {% for i in ind %}
-            <a href="{% url 'index' index=i.name %}"><b>{{ i.name }}</b> </a> |
-        {% endfor %}</div>
-    {% endif %}
     <div class="pt-5"></div>
     {% if request.user.is_authenticated %}
     <div class="pt-5">
