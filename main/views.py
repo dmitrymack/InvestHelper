@@ -93,7 +93,8 @@ def stock_view(request, ticker):
         "divs": dat['defaultKeyStatistics']['lastDividendValue']['raw']
             if 'raw' in dat['defaultKeyStatistics']['lastDividendValue'] else 0,
         "div_date": dat['defaultKeyStatistics']['lastDividendDate']['fmt']
-            if 'fmt' in dat['defaultKeyStatistics']['lastDividendDate'] else '-',
+            if 'lastDividendDate' in dat['defaultKeyStatistics'] and
+               'fmt' in dat['defaultKeyStatistics']['lastDividendDate'] else '-',
         "low": dat['price']['regularMarketDayLow']['raw'],
         "high": dat['price']['regularMarketDayHigh']['raw'],
         "beta": dat['defaultKeyStatistics']['beta']['fmt'],
@@ -241,15 +242,15 @@ def fill_base():
              i.delete()
 
 
-sl = 0
+sl = False
 
 
 def periodic_fill():
     global sl
-    if sl >= 1:
+    if sl:
         return
     else:
-        sl += 1
+        sl = True
         while True:
             now = datetime.now()
             if now.hour == 1 and now.minute == 0:
