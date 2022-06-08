@@ -85,7 +85,7 @@ def stock_view(request, ticker):
     return render(request, "main/stock.html", context={
         "ticker": ticker,
         "price": dat['price']['regularMarketPrice']['raw'],
-        "price_open": dat['price']['regularMarketOpen']['raw'],
+        "price_open": dat['price']['regularMarketPreviousClose']['raw'],
         "change": dat['price']['regularMarketChange']['fmt'],
         "change_perc": dat['price']['regularMarketChangePercent']['fmt'],
         "name": dat['price']['shortName'],
